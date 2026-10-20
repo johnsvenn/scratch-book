@@ -1,0 +1,37 @@
+// Color Palette
+// Consolidate all colors into a single file for easy reference.
+
+$white: #fff;
+$grey-100: #fafafa;
+$grey-150: #f5f5f5;
+$grey-175: #f8f8f8;
+$grey-200: #f0f0f0;
+$grey-225: #e8e8e8;
+$grey-250: #eee;
+$grey-300: #e0e0e0;
+$grey-350: #d4d4d4;
+$grey-375: #c8c8c8;
+$grey-400: #ccc;
+$grey-450: #bbb;
+$grey-500: #aaa;
+$grey-550: #999;
+$grey-600: #888;
+$grey-650: #868484;
+$grey-700: #666;
+$grey-725: #555;
+$grey-750: #444;
+$grey-800: #333;
+$grey-850: #111;
+$black: #000;
+
+$danger-500: #d32f2f;
+$danger-100: #ffebeb;
+
+$blue-500: #25a4ee;
+$blue-100: #e8f7ff;
+
+// Semantic aliases (optional but helpful for transition)
+$bg-main: $grey-250;
+$text-main: $grey-800;
+$border-light: $grey-250;
+$border-medium: $grey-400;

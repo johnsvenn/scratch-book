@@ -1,0 +1,430 @@
+
+> scratchbook@0.0.1 build
+> electron-vite build
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+vite v5.4.21 building SSR bundle for production...
+transforming...
+✓ 2 modules transformed.
+rendering chunks...
+out/main/index.js  2.40 kB
+✓ built in 76ms
+vite v5.4.21 building SSR bundle for production...
+transforming...
+✓ 1 modules transformed.
+rendering chunks...
+out/preload/index.js  0.54 kB
+✓ built in 11ms
+vite v5.4.21 building for production...
+transforming...
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [global-builtin]: Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+   ╷
+29 │         background: darken(#eee, 10%);
+   │                     ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/BaseButton/BaseButton.vue 29:21  root stylesheet
+
+DEPRECATION WARNING [color-functions]: darken() is deprecated. Suggestions:
+
+color.scale($color, $lightness: -10.7142857143%)
+color.adjust($color, $lightness: -10%)
+
+More info: https://sass-lang.com/d/color-functions
+
+   ╷
+29 │         background: darken(#eee, 10%);
+   │                     ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/BaseButton/BaseButton.vue 29:21  root stylesheet
+
+DEPRECATION WARNING [global-builtin]: Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+   ╷
+45 │             background: lighten(#eee, 0%);
+   │                         ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/Settings/Settings.vue 45:25  root stylesheet
+
+DEPRECATION WARNING [color-functions]: lighten() is deprecated. Suggestion:
+
+color.adjust($color, $lightness: 0%)
+
+More info: https://sass-lang.com/d/color-functions
+
+   ╷
+45 │             background: lighten(#eee, 0%);
+   │                         ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/Settings/Settings.vue 45:25  root stylesheet
+
+DEPRECATION WARNING [global-builtin]: Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+   ╷
+46 │             color: lighten(#333, 25%);
+   │                    ^^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/Settings/Settings.vue 46:20  root stylesheet
+
+DEPRECATION WARNING [color-functions]: lighten() is deprecated. Suggestions:
+
+color.scale($color, $lightness: 31.25%)
+color.adjust($color, $lightness: 25%)
+
+More info: https://sass-lang.com/d/color-functions
+
+   ╷
+46 │             color: lighten(#333, 25%);
+   │                    ^^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/Settings/Settings.vue 46:20  root stylesheet
+
+DEPRECATION WARNING [global-builtin]: Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+   ╷
+52 │             background: darken(#eee, 10%);
+   │                         ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/Navigation/PageNavigation.vue 52:25  root stylesheet
+
+DEPRECATION WARNING [color-functions]: darken() is deprecated. Suggestions:
+
+color.scale($color, $lightness: -10.7142857143%)
+color.adjust($color, $lightness: -10%)
+
+More info: https://sass-lang.com/d/color-functions
+
+   ╷
+52 │             background: darken(#eee, 10%);
+   │                         ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/Navigation/PageNavigation.vue 52:25  root stylesheet
+
+DEPRECATION WARNING [global-builtin]: Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+   ╷
+51 │                 background: darken(#eee, 10%);
+   │                             ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/Settings/Settings.vue 51:29  root stylesheet
+
+DEPRECATION WARNING [color-functions]: darken() is deprecated. Suggestions:
+
+color.scale($color, $lightness: -10.7142857143%)
+color.adjust($color, $lightness: -10%)
+
+More info: https://sass-lang.com/d/color-functions
+
+   ╷
+51 │                 background: darken(#eee, 10%);
+   │                             ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/Settings/Settings.vue 51:29  root stylesheet
+
+DEPRECATION WARNING [global-builtin]: Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+   ╷
+67 │                     background: darken(#eee, 10%);
+   │                                 ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/Favourites/Favourites.vue 67:33  root stylesheet
+
+DEPRECATION WARNING [color-functions]: darken() is deprecated. Suggestions:
+
+color.scale($color, $lightness: -10.7142857143%)
+color.adjust($color, $lightness: -10%)
+
+More info: https://sass-lang.com/d/color-functions
+
+   ╷
+67 │                     background: darken(#eee, 10%);
+   │                                 ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/Favourites/Favourites.vue 67:33  root stylesheet
+
+DEPRECATION WARNING [global-builtin]: Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+   ╷
+86 │             background: lighten(#eee, 0%);
+   │                         ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/Favourites/Favourites.vue 86:25  root stylesheet
+
+DEPRECATION WARNING [color-functions]: lighten() is deprecated. Suggestion:
+
+color.adjust($color, $lightness: 0%)
+
+More info: https://sass-lang.com/d/color-functions
+
+   ╷
+86 │             background: lighten(#eee, 0%);
+   │                         ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/Favourites/Favourites.vue 86:25  root stylesheet
+
+DEPRECATION WARNING [global-builtin]: Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+   ╷
+87 │             color: lighten(#333, 25%);
+   │                    ^^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/Favourites/Favourites.vue 87:20  root stylesheet
+
+DEPRECATION WARNING [color-functions]: lighten() is deprecated. Suggestions:
+
+color.scale($color, $lightness: 31.25%)
+color.adjust($color, $lightness: 25%)
+
+More info: https://sass-lang.com/d/color-functions
+
+   ╷
+87 │             color: lighten(#333, 25%);
+   │                    ^^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/Favourites/Favourites.vue 87:20  root stylesheet
+
+DEPRECATION WARNING [global-builtin]: Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+   ╷
+68 │             background: lighten(#eee, 5%);
+   │                         ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/HomePage.vue 68:25  root stylesheet
+
+DEPRECATION WARNING [color-functions]: lighten() is deprecated. Suggestions:
+
+color.scale($color, $lightness: 75%)
+color.adjust($color, $lightness: 5%)
+
+More info: https://sass-lang.com/d/color-functions
+
+   ╷
+68 │             background: lighten(#eee, 5%);
+   │                         ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/HomePage.vue 68:25  root stylesheet
+
+DEPRECATION WARNING [global-builtin]: Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+   ╷
+69 │             color: lighten(#333, 50%);
+   │                    ^^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/HomePage.vue 69:20  root stylesheet
+
+DEPRECATION WARNING [color-functions]: lighten() is deprecated. Suggestions:
+
+color.scale($color, $lightness: 62.5%)
+color.adjust($color, $lightness: 50%)
+
+More info: https://sass-lang.com/d/color-functions
+
+   ╷
+69 │             color: lighten(#333, 50%);
+   │                    ^^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/HomePage.vue 69:20  root stylesheet
+
+DEPRECATION WARNING [global-builtin]: Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+   ╷
+92 │                 background: darken(#eee, 10%);
+   │                             ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/Favourites/Favourites.vue 92:29  root stylesheet
+
+DEPRECATION WARNING [color-functions]: darken() is deprecated. Suggestions:
+
+color.scale($color, $lightness: -10.7142857143%)
+color.adjust($color, $lightness: -10%)
+
+More info: https://sass-lang.com/d/color-functions
+
+   ╷
+92 │                 background: darken(#eee, 10%);
+   │                             ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/Favourites/Favourites.vue 92:29  root stylesheet
+
+DEPRECATION WARNING [global-builtin]: Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+   ╷
+71 │                 background: lighten(#eee, 0%);
+   │                             ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/HomePage.vue 71:29  root stylesheet
+
+DEPRECATION WARNING [color-functions]: lighten() is deprecated. Suggestion:
+
+color.adjust($color, $lightness: 0%)
+
+More info: https://sass-lang.com/d/color-functions
+
+   ╷
+71 │                 background: lighten(#eee, 0%);
+   │                             ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/HomePage.vue 71:29  root stylesheet
+
+DEPRECATION WARNING [global-builtin]: Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+   ╷
+72 │                 color: lighten(#333, 25%);
+   │                        ^^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/HomePage.vue 72:24  root stylesheet
+
+DEPRECATION WARNING [color-functions]: lighten() is deprecated. Suggestions:
+
+color.scale($color, $lightness: 31.25%)
+color.adjust($color, $lightness: 25%)
+
+More info: https://sass-lang.com/d/color-functions
+
+   ╷
+72 │                 color: lighten(#333, 25%);
+   │                        ^^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/HomePage.vue 72:24  root stylesheet
+
+DEPRECATION WARNING [global-builtin]: Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+   ╷
+77 │                 background: darken(#eee, 10%);
+   │                             ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/HomePage.vue 77:29  root stylesheet
+
+DEPRECATION WARNING [color-functions]: darken() is deprecated. Suggestions:
+
+color.scale($color, $lightness: -10.7142857143%)
+color.adjust($color, $lightness: -10%)
+
+More info: https://sass-lang.com/d/color-functions
+
+   ╷
+77 │                 background: darken(#eee, 10%);
+   │                             ^^^^^^^^^^^^^^^^^
+   ╵
+    src/renderer/components/HomePage.vue 77:29  root stylesheet
+
+✓ 57 modules transformed.
+rendering chunks...
+../../out/renderer/index.html                                             0.30 kB
+../../out/renderer/assets/roboto-latin-900-BEowQPyJ.woff2                15.71 kB
+../../out/renderer/assets/roboto-latin-400-CEEi-WbQ.woff2                15.74 kB
+../../out/renderer/assets/roboto-latin-300-EvKWBL9d.woff2                15.78 kB
+../../out/renderer/assets/roboto-latin-100-BJNx9A77.woff2                15.81 kB
+../../out/renderer/assets/roboto-latin-700-CqGedB_1.woff2                15.82 kB
+../../out/renderer/assets/roboto-latin-500-DRg8azjQ.woff2                15.87 kB
+../../out/renderer/assets/roboto-mono-latin-700-BWr75R-i.woff2           16.18 kB
+../../out/renderer/assets/roboto-mono-latin-400-DVLNN2Ol.woff2           16.33 kB
+../../out/renderer/assets/roboto-mono-latin-500-D1AeobFP.woff2           16.38 kB
+../../out/renderer/assets/roboto-mono-latin-300-CmP5wzVm.woff2           16.63 kB
+../../out/renderer/assets/roboto-mono-latin-100-BSagQiFM.woff2           16.93 kB
+../../out/renderer/assets/roboto-latin-100italic-DkGpOhj0.woff2          17.01 kB
+../../out/renderer/assets/roboto-latin-700italic-C5p_YAqY.woff2          17.02 kB
+../../out/renderer/assets/roboto-latin-500italic-CAWXcheQ.woff2          17.32 kB
+../../out/renderer/assets/roboto-latin-400italic-DRWWNyaf.woff2          17.32 kB
+../../out/renderer/assets/roboto-mono-latin-100italic-i_oTYc4s.woff2     17.39 kB
+../../out/renderer/assets/roboto-latin-300italic-CYatNKLh.woff2          17.45 kB
+../../out/renderer/assets/roboto-latin-900italic-DBp_g5Ww.woff2          17.52 kB
+../../out/renderer/assets/roboto-mono-latin-700italic-D5bHRpTP.woff2     17.66 kB
+../../out/renderer/assets/roboto-mono-latin-400italic-EHTlq6xI.woff2     17.67 kB
+../../out/renderer/assets/roboto-mono-latin-500italic-BKJQn-0W.woff2     17.71 kB
+../../out/renderer/assets/roboto-mono-latin-300italic-D1P01t9w.woff2     17.72 kB
+../../out/renderer/assets/roboto-mono-latin-700-CCmrMk15.woff            19.96 kB
+../../out/renderer/assets/roboto-mono-latin-400-BZSNi1l4.woff            19.97 kB
+../../out/renderer/assets/roboto-mono-latin-500-BBcAEXZU.woff            20.04 kB
+../../out/renderer/assets/roboto-latin-400-CKhRtUFO.woff                 20.27 kB
+../../out/renderer/assets/roboto-mono-latin-300-CxsUt_6L.woff            20.28 kB
+../../out/renderer/assets/roboto-latin-300-Cx9SeV6m.woff                 20.35 kB
+../../out/renderer/assets/roboto-latin-700-CCwTn0--.woff                 20.36 kB
+../../out/renderer/assets/roboto-latin-100-B3mHgoOJ.woff                 20.37 kB
+../../out/renderer/assets/roboto-latin-900-Blac3EU0.woff                 20.39 kB
+../../out/renderer/assets/roboto-latin-500-BU-otfqs.woff                 20.46 kB
+../../out/renderer/assets/roboto-mono-latin-100-vT9K7V4B.woff            20.48 kB
+../../out/renderer/assets/roboto-mono-latin-100italic-CB3sxMmL.woff      21.15 kB
+../../out/renderer/assets/roboto-mono-latin-300italic-CvSZmUOq.woff      21.47 kB
+../../out/renderer/assets/roboto-mono-latin-400italic-DFJ72TjG.woff      21.52 kB
+../../out/renderer/assets/roboto-mono-latin-500italic-DMDQIR9Q.woff      21.55 kB
+../../out/renderer/assets/roboto-mono-latin-700italic-C7H4NJdd.woff      21.56 kB
+../../out/renderer/assets/roboto-latin-700italic-DXbHVVaQ.woff           21.59 kB
+../../out/renderer/assets/roboto-latin-100italic-Bjs4D596.woff           21.70 kB
+../../out/renderer/assets/roboto-latin-400italic-B7WW6HdJ.woff           21.95 kB
+../../out/renderer/assets/roboto-latin-500italic-DC3lxgcN.woff           22.02 kB
+../../out/renderer/assets/roboto-latin-300italic-Uxw9HR3T.woff           22.20 kB
+../../out/renderer/assets/roboto-latin-900italic-uSnr6All.woff           22.30 kB
+../../out/renderer/assets/MaterialIcons-Regular-BjVsc-s9.woff2           44.30 kB
+../../out/renderer/assets/MaterialIcons-Regular-Bnsxcfr1.woff            57.62 kB
+../../out/renderer/assets/MaterialIcons-Regular-N21pKt8_.ttf            128.18 kB
+../../out/renderer/assets/MaterialIcons-Regular-rDPjWPoz.eot            143.26 kB
+../../out/renderer/assets/index-CgE0beh0.css                             15.24 kB
+../../out/renderer/assets/index-CUadiCGt.js                           1,132.60 kB
+✓ built in 2.57s
