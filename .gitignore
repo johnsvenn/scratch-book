@@ -14,3 +14,7 @@ thumbs.db
 /.project
 out
 .tasks
+.claude
+.agents
+CLAUDE.md
+skills-lock.json

@@ -64,7 +64,7 @@
 <script setup>
     import { ref, computed } from 'vue';
     import { Edit2, Trash2 } from 'lucide-vue-next';
-    import { TAG_COLORS } from '../../lib/TagMeta';
+    import { TAG_COLORS, getAutoColor } from '../../lib/TagMeta';
     import BaseModal from '../BaseModal/BaseModal.vue';
     import ConfirmModal from '../BaseModal/ConfirmModal.vue';
 
@@ -93,9 +93,9 @@
 
     function getTagColor(tagName) {
         if (props.tagColors instanceof Map) {
-            return props.tagColors.get(tagName) ?? '#aaa'; // Keep default for user-defined tags for now
+            return props.tagColors.get(tagName) ?? getAutoColor(tagName);
         }
-        return props.tagColors[tagName] ?? '#aaa';
+        return props.tagColors[tagName] ?? getAutoColor(tagName);
     }
 
     function startEdit(tag) {
@@ -110,7 +110,9 @@
 
     function saveEdit() {
         const newName = editName.value.trim().toLowerCase();
-        if (!newName) return;
+        if (!newName) {
+            return;
+        }
         
         const oldName = editingTag.value;
         const colorChanged = editColor.value !== getTagColor(oldName);

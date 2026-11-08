@@ -7,6 +7,30 @@ import Constants from './constants.js';
 const DEFAULT_INDEX_FILENAME = 'index.json';
 const ARCHIVE_INDEX_FILENAME = 'archive.json';
 
+// Page filters. Each takes a page and returns true if the page belongs in a view.
+// The index views and filterByTag use these, so each rule is written once.
+const pageFilters = {
+    hasTag: (page, tag) => !!page.tags && page.tags.includes(tag),
+    isArchived: (page) => pageFilters.hasTag(page, Constants.ARCHIVE_TAG),
+    notArchived: (page) => !pageFilters.isArchived(page),
+
+    // Factory: pages with `tag` that are not archived.
+    inTag: (tag) => (page) => pageFilters.hasTag(page, tag) && pageFilters.notArchived(page),
+    inDefault: (page) => pageFilters.inTag(Constants.CURRENT_TAG)(page),
+    inArchive: (page) => pageFilters.isArchived(page),
+
+    // The filter filterByTag uses. A null tag shows every page that is not archived.
+    forTag: (tag) => {
+        if (!tag) {
+            return pageFilters.notArchived;
+        }
+        if (tag === Constants.ARCHIVE_TAG) {
+            return pageFilters.inArchive;
+        }
+        return pageFilters.inTag(tag);
+    },
+};
+
 // We rewrite PageIndex as a single global manager that interfaces with IndexedDB
 const UnifiedIndex = {
     items: [],
@@ -34,8 +58,12 @@ const UnifiedIndex = {
             });
         } else {
             this.items.sort((a, b) => {
-                if (!a.createdAt) return 1;
-                if (!b.createdAt) return -1;
+                if (!a.createdAt) {
+                    return 1;
+                }
+                if (!b.createdAt) {
+                    return -1;
+                }
                 return a.createdAt.localeCompare(b.createdAt);
             });
         }
@@ -44,15 +72,13 @@ const UnifiedIndex = {
         return this.items;
     },
 
-    append: async function (item, silent = false) {
+    // Page rows are written by PageWriter. This index only holds the in-memory list and tag order.
+    append: async function (item) {
         let newItem = new Page(item);
         this.items.push(newItem);
         if (!newItem.isEmpty()) {
-            await db.put(newItem, silent);
-            search.add(newItem);
-
             // Update 'current' order if it's not archived
-            if (!newItem.tags || !newItem.tags.includes(Constants.ARCHIVE_TAG)) {
+            if (pageFilters.notArchived(newItem)) {
                 const order = (await db.getOrder(Constants.CURRENT_TAG)) || [];
                 if (!order.includes(newItem.filename)) {
                     order.push(newItem.filename);
@@ -62,15 +88,12 @@ const UnifiedIndex = {
         }
     },
 
-    prepend: async function (item, silent = false) {
+    prepend: async function (item) {
         let newItem = new Page(item);
         this.items.unshift(newItem);
         if (!newItem.isEmpty()) {
-            await db.put(newItem, silent);
-            search.add(newItem);
-
             // Update 'current' order if it's not archived
-            if (!newItem.tags || !newItem.tags.includes(Constants.ARCHIVE_TAG)) {
+            if (pageFilters.notArchived(newItem)) {
                 const order = (await db.getOrder(Constants.CURRENT_TAG)) || [];
                 if (!order.includes(newItem.filename)) {
                     order.unshift(newItem.filename);
@@ -80,10 +103,9 @@ const UnifiedIndex = {
         }
     },
 
-    delete: async function (item, silent = false) {
+    // Removes from memory and tag orders only. Call PageWriter.remove first to delete the page itself.
+    delete: async function (item) {
         this.items = this.items.filter((obj) => obj.filename !== item.filename);
-        await db.delete(item.filename, silent);
-        search.remove(item.filename);
 
         // Remove from tag orders
         const tags = [Constants.CURRENT_TAG, Constants.ARCHIVE_TAG, Constants.FAVOURITE_TAG]; // And any others later
@@ -99,7 +121,8 @@ const UnifiedIndex = {
         // To be implemented or handled UI side
     },
 
-    update: async function (item, silent = false) {
+    // Memory only. Call PageWriter.save first so the page is persisted.
+    update: async function (item) {
         let newItem = new Page(item);
         const idx = this.items.findIndex((existing) => existing.filename === newItem.filename);
         if (idx !== -1) {
@@ -107,29 +130,9 @@ const UnifiedIndex = {
         } else {
             this.items.push(newItem);
         }
-
-        if (newItem.isEmpty()) {
-            // Remove from database and search if it's empty now
-            await db.delete(newItem.filename, silent);
-            search.remove(newItem.filename);
-            // Also remove it from memory so it's fully excluded from the app state
-            this.items = this.items.filter((obj) => obj.filename !== newItem.filename);
-        } else {
-            await db.put(newItem, silent);
-            search.add(newItem);
-        }
     },
 
     save: async function () {
-    },
-
-    setItems: async function (items) {
-        this.items = items.map((i) => new Page(i)).filter((item) => !item.isEmpty());
-        await db.clear();
-        for (const item of this.items) {
-            await db.put(item);
-        }
-        await search.init(this.items);
     },
 
     list: function () {
@@ -137,15 +140,10 @@ const UnifiedIndex = {
     },
 
     filterByTag: async function (tag) {
-        if (!tag) return this.items.filter(item => !item.tags || !item.tags.includes(Constants.ARCHIVE_TAG));
-
-        const filtered = this.items.filter(item => {
-            const hasTag = item.tags && item.tags.includes(tag);
-            const isArchived = item.tags && item.tags.includes(Constants.ARCHIVE_TAG);
-
-            if (tag === Constants.ARCHIVE_TAG) return isArchived;
-            return hasTag && !isArchived;
-        });
+        const filtered = this.items.filter(pageFilters.forTag(tag));
+        if (!tag) {
+            return filtered;
+        }
 
         // Load custom order for the specific tag
         const order = await db.getOrder(tag);
@@ -177,7 +175,9 @@ const UnifiedIndex = {
     },
 
     search: function (query) {
-        if (!query) return this.items;
+        if (!query) {
+            return this.items;
+        }
         const results = search.search(query);
         const resultIds = new Set(results.map(r => r.id));
         return this.items.filter(item => resultIds.has(item.filename));
@@ -191,9 +191,13 @@ const UnifiedIndex = {
     getAllUserTags: function () {
         const counts = new Map();
         for (const item of this.items) {
-            if (!item.tags) continue;
+            if (!item.tags) {
+                continue;
+            }
             for (const tag of item.tags) {
-                if (RESERVED_TAGS.has(tag)) continue;
+                if (RESERVED_TAGS.has(tag)) {
+                    continue;
+                }
                 counts.set(tag, (counts.get(tag) ?? 0) + 1);
             }
         }
@@ -212,19 +216,19 @@ const UnifiedIndex = {
         return {
             init: async () => UnifiedIndex.init(),
             append: async (item) => {
-                if (!item.tags) item.tags = [];
-                if (!item.tags.includes(tagName)) item.tags.push(tagName);
+                if (!item.tags) {
+                    item.tags = [];
+                }
+                // New array, not push: page tags are replaced, never mutated in place.
+                if (!item.tags.includes(tagName)) {
+                    item.tags = [...item.tags, tagName];
+                }
                 await UnifiedIndex.append(item);
             },
             delete: async (item) => UnifiedIndex.delete(item),
             update: async (item) => UnifiedIndex.update(item),
             save: async () => UnifiedIndex.save(),
-            list: () => UnifiedIndex.items.filter(
-                (item) =>
-                    item.tags &&
-                    item.tags.includes(tagName) &&
-                    !item.tags.includes(Constants.ARCHIVE_TAG)
-            ),
+            list: () => UnifiedIndex.items.filter(pageFilters.inTag(tagName)),
             filter: async (tag) => UnifiedIndex.filterByTag(tag),
             saveTagOrder: async (tag, items) => UnifiedIndex.saveTagOrder(tag, items),
             tagName,
@@ -245,11 +249,10 @@ const defaultIndex = {
     update: async (item) => UnifiedIndex.update(item),
     move: (item, index) => UnifiedIndex.move(item, index),
     save: async () => UnifiedIndex.save(),
-    setItems: async (items) => UnifiedIndex.setItems(items),
-    list: () => UnifiedIndex.items.filter(item => (!item.tags || !item.tags.includes(Constants.ARCHIVE_TAG)) && (item.tags && item.tags.includes(Constants.CURRENT_TAG))),
+    list: () => UnifiedIndex.items.filter(pageFilters.inDefault),
     filter: async (tag) => UnifiedIndex.filterByTag(tag),
     saveTagOrder: async (tag, items) => UnifiedIndex.saveTagOrder(tag, items),
-    search: (query) => UnifiedIndex.search(query).filter(item => (!item.tags || !item.tags.includes(Constants.ARCHIVE_TAG)) && (item.tags && item.tags.includes(Constants.CURRENT_TAG))),
+    search: (query) => UnifiedIndex.search(query).filter(pageFilters.inDefault),
     tagName: Constants.CURRENT_TAG,
     indexFileName: DEFAULT_INDEX_FILENAME
 };
@@ -274,11 +277,10 @@ const archiveIndex = {
     update: async (item) => UnifiedIndex.update(item),
     move: (item, index) => UnifiedIndex.move(item, index),
     save: async () => UnifiedIndex.save(),
-    setItems: async (items) => UnifiedIndex.setItems(items),
-    list: () => UnifiedIndex.items.filter(item => item.tags && item.tags.includes(Constants.ARCHIVE_TAG)),
+    list: () => UnifiedIndex.items.filter(pageFilters.inArchive),
     filter: async (tag) => UnifiedIndex.filterByTag(tag),
     saveTagOrder: async (tag, items) => UnifiedIndex.saveTagOrder(tag, items),
-    search: (query) => UnifiedIndex.search(query).filter(item => item.tags && item.tags.includes(Constants.ARCHIVE_TAG)),
+    search: (query) => UnifiedIndex.search(query).filter(pageFilters.inArchive),
     tagName: Constants.ARCHIVE_TAG,
     indexFileName: ARCHIVE_INDEX_FILENAME
 };

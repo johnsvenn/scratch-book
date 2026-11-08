@@ -1,7 +1,6 @@
 import filestore from './filestore.js';
 import Datetime from './DatetimeFunctions.js';
-
-const SYNC_TOKEN_FILE = '_sync_state.json';
+import { FILES, syncTokenPayload } from '../../shared/protocol.js';
 
 const SyncToken = {
     /**
@@ -10,11 +9,8 @@ const SyncToken = {
      */
     touch: async () => {
         let datetime = new Datetime();
-        const payload = {
-            lastSyncTimestamp: datetime.getDateTimeString(),
-        };
         try {
-            await filestore.saveFile(SYNC_TOKEN_FILE, JSON.stringify(payload, null, 2));
+            await filestore.saveFile(FILES.syncToken, syncTokenPayload({ timestamp: datetime.getDateTimeString() }));
         } catch (e) {
             console.error('Failed to write sync token', e);
         }
@@ -22,4 +18,3 @@ const SyncToken = {
 };
 
 export default SyncToken;
-export { SYNC_TOKEN_FILE };

@@ -83,6 +83,7 @@
     import { ref, computed } from 'vue';
     import { FolderHeart, Tag, Settings, ChevronDown } from 'lucide-vue-next';
     import Constants from '../../lib/constants';
+    import { getAutoColor } from '../../lib/TagMeta';
 
     const props = defineProps({
         activeTagName: {
@@ -142,9 +143,9 @@
     function getTagColor(tagName) {
         // tagColors can be a Map or a plain object
         if (props.tagColors instanceof Map) {
-            return props.tagColors.get(tagName) ?? '#aaa';
+            return props.tagColors.get(tagName) ?? getAutoColor(tagName);
         }
-        return props.tagColors[tagName] ?? '#aaa';
+        return props.tagColors[tagName] ?? getAutoColor(tagName);
     }
 
     function toggleDropdown() {

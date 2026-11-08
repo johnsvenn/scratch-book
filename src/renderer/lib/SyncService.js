@@ -3,6 +3,8 @@ import filestore from './filestore.js';
 import fileFormatter from './fileFormatter.js';
 import { UnifiedIndex } from './PageIndex.js';
 import Page from './Pages/Page.js';
+import pageWriter from './Pages/PageWriter.js';
+import { FILES, IPC, isImportToken, isTombstone } from '../../shared/protocol.js';
 
 async function runWithConcurrency(items, limit, worker) {
     const queue = [...items];
@@ -20,11 +22,13 @@ const SyncService = {
     unsubscribeSyncListener: null,
 
     init() {
-        if (this.initialized) return;
+        if (this.initialized) {
+            return;
+        }
         this.initialized = true;
 
         if (window.electronAPI && window.electronAPI.on) {
-            const disposer = window.electronAPI.on('sync-state-changed', () => {
+            const disposer = window.electronAPI.on(IPC.syncStateChanged, () => {
                 console.log('Sync event received in renderer');
                 this.performSync();
             });
@@ -47,30 +51,27 @@ const SyncService = {
 
         let isFullImport = false;
         try {
-            const tokenFile = await filestore.getFile('_sync_state.json');
-            if (tokenFile) {
-                const token = JSON.parse(tokenFile);
-                if (token.import) {
-                    isFullImport = true;
-                    console.log('Sync: Full import detected, clearing local state');
-                }
+            const tokenFile = await filestore.getFile(FILES.syncToken);
+            if (isImportToken(tokenFile)) {
+                isFullImport = true;
+                console.log('Sync: Full import detected, clearing local state');
             }
         } catch (e) {
             // Token might be missing or malformed
         }
 
         if (isFullImport || forceFullSync) {
-            await db.clearAll(); 
+            await db.clearAll();
             UnifiedIndex.items = [];
         }
 
         // 1. Sync Tag Meta
         try {
-            const tagMetaFile = await filestore.getFile('tag_meta.json');
+            const tagMetaFile = await filestore.getFile(FILES.tagMeta);
             if (tagMetaFile) {
                 const tagMeta = JSON.parse(tagMetaFile);
                 if (Array.isArray(tagMeta)) {
-                    await Promise.all(tagMeta.map((meta) => db.putTagMeta(meta, true)));
+                    await Promise.all(tagMeta.map((meta) => db.fromSync.putTagMeta(meta)));
                 }
             }
         } catch (e) {
@@ -79,11 +80,11 @@ const SyncService = {
 
         // 2. Sync Orderings
         try {
-            const orderingsFile = await filestore.getFile('orderings.json');
+            const orderingsFile = await filestore.getFile(FILES.orderings);
             if (orderingsFile) {
                 const orderings = JSON.parse(orderingsFile);
                 if (Array.isArray(orderings)) {
-                    await Promise.all(orderings.map((entry) => db.putOrder(entry.tag, entry.filenames, true)));
+                    await Promise.all(orderings.map((entry) => db.fromSync.putOrder(entry.tag, entry.filenames)));
                 }
             }
         } catch (e) {
@@ -100,10 +101,14 @@ const SyncService = {
 
             await runWithConcurrency(pageDirs, 8, async (dirName) => {
                 const pageFile = await filestore.getFile(`${dirName}/index.md`);
-                if (!pageFile) return;
+                if (!pageFile) {
+                    return;
+                }
 
                 const [meta, content] = fileFormatter.extract(pageFile);
-                if (!meta || typeof meta !== 'object') return;
+                if (!meta || typeof meta !== 'object') {
+                    return;
+                }
                 if (!meta.filename) {
                     // Backward compatibility for older soft-delete payloads.
                     meta.filename = dirName;
@@ -114,10 +119,11 @@ const SyncService = {
 
                 const existingPage = existingPages.get(meta.filename);
                 
-                if (meta.isDeleted) {
+                if (isTombstone(meta)) {
                     // Handle soft delete
                     if (existingPage) {
                         console.log('Sync: Removing soft-deleted page', meta.filename);
+                        await pageWriter.forget(meta.filename);
                         await UnifiedIndex.delete(meta);
                     }
                     return;
@@ -126,7 +132,8 @@ const SyncService = {
                 if (!existingPage || (meta.modifiedAt && (!existingPage.modifiedAt || meta.modifiedAt > existingPage.modifiedAt))) {
                     console.log('Sync: Updating page from disk', meta.filename);
                     const newPage = new Page(meta);
-                    await UnifiedIndex.update(newPage, true);
+                    await pageWriter.importFromDisk(newPage);
+                    await UnifiedIndex.update(newPage);
                 }
             });
         } catch (e) {

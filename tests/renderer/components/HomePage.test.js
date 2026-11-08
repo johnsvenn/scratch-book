@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import HomePage from '../../../src/renderer/components/HomePage.vue';
 import { UnifiedIndex, defaultIndex } from '../../../src/renderer/lib/PageIndex';
-import PageService from '../../../src/renderer/lib/Pages/PageService';
+import pageWriter from '../../../src/renderer/lib/Pages/PageWriter';
 import TagMeta from '../../../src/renderer/lib/TagMeta';
 import Constants from '../../../src/renderer/lib/constants';
 
@@ -41,11 +41,12 @@ vi.mock('../../../src/renderer/lib/PageIndex', () => {
     };
 });
 
-vi.mock('../../../src/renderer/lib/Pages/PageService', () => ({
+vi.mock('../../../src/renderer/lib/Pages/PageWriter', () => ({
     default: {
-        newItem: vi.fn().mockReturnValue({ title: '', content: '', tags: [] }),
-        createItem: vi.fn().mockResolvedValue({ filename: 'new.json', title: '', content: '', tags: [] }),
-        updateItem: vi.fn().mockImplementation(item => Promise.resolve({ ...item, modifiedAt: new Date() })),
+        save: vi.fn().mockImplementation(item => Promise.resolve({ ...item, modifiedAt: new Date() })),
+        remove: vi.fn().mockResolvedValue(undefined),
+        renameTag: vi.fn().mockResolvedValue(0),
+        removeTag: vi.fn().mockResolvedValue(0),
     }
 }));
 
@@ -119,7 +120,7 @@ describe('HomePage.vue', () => {
         
         await pageControls.vm.$emit('create-new-page-file');
         
-        expect(PageService.createItem).toHaveBeenCalled();
+        expect(UnifiedIndex.append).toHaveBeenCalled();
     });
 
     it('toggles markdown mode when toggle switch is changed', async () => {
@@ -201,5 +202,68 @@ describe('HomePage.vue', () => {
         
         // Assert we restored to page 3
         expect(wrapper.vm.currentPageNumber).toBe(3);
+    });
+
+    it('saves the page when an existing tag is added to it', async () => {
+        // A page that already has one tag, loaded from the index as the current page
+        const page = { filename: 'pet.json', title: 'Fluffy', content: 'Cat', tags: ['Pets'], modifiedAt: '2026-01-01 00:00:00' };
+        UnifiedIndex.list.mockReturnValue([page]);
+
+        try {
+            const wrapper = mount(HomePage);
+            await new Promise(resolve => setTimeout(resolve, 0));
+
+            // Add a tag that already exists on other pages, via the tag picker
+            await wrapper.findComponent({ name: 'PageTagPills' }).vm.$emit('add-tag', 'Work');
+            await new Promise(resolve => setTimeout(resolve, 0));
+
+            expect(wrapper.vm.currentPage.tags).toEqual(['Pets', 'Work']);
+            expect(pageWriter.save).toHaveBeenCalledWith(expect.objectContaining({
+                filename: 'pet.json',
+                tags: ['Pets', 'Work'],
+            }));
+        } finally {
+            UnifiedIndex.list.mockReturnValue([]);
+        }
+    });
+
+    it('autosaves a title edit after the debounce delay', async () => {
+        const page = { filename: 'pet.json', title: 'Fluffy', content: 'Cat', tags: ['Pets'], modifiedAt: '2026-01-01 00:00:00' };
+        UnifiedIndex.list.mockReturnValue([page]);
+
+        try {
+            const wrapper = mount(HomePage);
+            await new Promise(resolve => setTimeout(resolve, 0));
+
+            vi.useFakeTimers();
+            await wrapper.find('.page-layout__title-input').setValue('Fluffy 2');
+            await vi.advanceTimersByTimeAsync(2000);
+
+            expect(pageWriter.save).toHaveBeenCalledWith(expect.objectContaining({ title: 'Fluffy 2' }));
+        } finally {
+            vi.useRealTimers();
+            UnifiedIndex.list.mockReturnValue([]);
+        }
+    });
+
+    it('saves the page when it is added to favourites', async () => {
+        const page = { filename: 'pet.json', title: 'Fluffy', content: 'Cat', tags: ['Pets'], modifiedAt: '2026-01-01 00:00:00' };
+        UnifiedIndex.list.mockReturnValue([page]);
+
+        try {
+            const wrapper = mount(HomePage);
+            await new Promise(resolve => setTimeout(resolve, 0));
+
+            await wrapper.findComponent({ name: 'PageControls' }).vm.$emit('add-to-favourites');
+            await new Promise(resolve => setTimeout(resolve, 0));
+
+            expect(wrapper.vm.currentPage.tags).toEqual(['Pets', Constants.FAVOURITE_TAG]);
+            expect(pageWriter.save).toHaveBeenCalledWith(expect.objectContaining({
+                filename: 'pet.json',
+                tags: ['Pets', Constants.FAVOURITE_TAG],
+            }));
+        } finally {
+            UnifiedIndex.list.mockReturnValue([]);
+        }
     });
 });

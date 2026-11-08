@@ -187,7 +187,9 @@
     function getPreview(result) {
         const raw = result.content;
         const term = query.value.trim();
-        if (!raw || !term) return '';
+        if (!raw || !term) {
+            return '';
+        }
 
         const lower  = raw.toLowerCase();
         const termLc = term.toLowerCase();
@@ -200,13 +202,19 @@
         if (idx === -1) {
             // Term not literally present (fuzzy / prefix match) — show start of content
             snippet = raw.slice(0, PREVIEW_RADIUS * 2);
-            if (raw.length > PREVIEW_RADIUS * 2) suffixEllipsis = '…';
+            if (raw.length > PREVIEW_RADIUS * 2) {
+                suffixEllipsis = '…';
+            }
         } else {
             const start = Math.max(0, idx - PREVIEW_RADIUS);
             const end   = Math.min(raw.length, idx + termLc.length + PREVIEW_RADIUS);
             snippet = raw.slice(start, end);
-            if (start > 0)          prefixEllipsis = '…';
-            if (end < raw.length)   suffixEllipsis = '…';
+            if (start > 0) {
+                prefixEllipsis = '…';
+            }
+            if (end < raw.length) {
+                suffixEllipsis = '…';
+            }
         }
 
         // Sanitise (strip any HTML), then highlight the term

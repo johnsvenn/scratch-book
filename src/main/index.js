@@ -1,10 +1,12 @@
 'use strict';
 
 import { app, BrowserWindow, ipcMain, shell, dialog, Menu, MenuItem } from 'electron';
-import { dirname, join } from 'path';
+import { dirname, join, resolve, relative, isAbsolute, sep } from 'path';
 import Constants from '../renderer/lib/constants';
 import chokidar from 'chokidar';
 import AdmZip from 'adm-zip';
+import { findBadPaths } from './zipPathValidator';
+import { IPC, FILES, SETTINGS, readSettings, syncTokenPayload } from '../shared/protocol.js';
 
 const fs = require('fs');
 const fsp = fs.promises;
@@ -40,7 +42,9 @@ function createWindow() {
         const inEditor = await mainWindow.webContents.executeJavaScript(
             `!!document.elementFromPoint(${params.x}, ${params.y})?.closest('.page-layout__title-input, .page-layout__content-textarea, .markdown-renderer')`
         );
-        if (!inEditor) return;
+        if (!inEditor) {
+            return;
+        }
 
         const menu = new Menu();
 
@@ -82,7 +86,7 @@ function createWindow() {
             menu.append(new MenuItem({ type: 'separator' }));
             menu.append(new MenuItem({
                 label: 'Insert Link…',
-                click: () => mainWindow.webContents.send('insert-link')
+                click: () => mainWindow.webContents.send(IPC.insertLink)
             }));
         }
 
@@ -98,6 +102,18 @@ function getDirectoryPath() {
     return join(app.getPath('home'), dataDirectory);
 }
 
+// Resolves a renderer-supplied filename inside the data directory.
+// Returns null if the result would fall outside it (e.g. '../secrets').
+function resolveDataPath(filename) {
+    const root = resolve(getDirectoryPath());
+    const target = resolve(root, filename);
+    const rel = relative(root, target);
+    if (rel === '' || rel === '..' || rel.startsWith('..' + sep) || isAbsolute(rel)) {
+        return null;
+    }
+    return target;
+}
+
 function createScratchDirectory() {
     const directoryPath = getDirectoryPath();
     if (!fs.existsSync(directoryPath)) {
@@ -108,9 +124,14 @@ function createScratchDirectory() {
 app.whenReady().then(() => {
     createWindow();
 
-    ipcMain.handle('save-file', async (_, filename, data) => {
-        if (!filename || typeof filename !== 'string') return false;
-        const filePath = join(getDirectoryPath(), filename);
+    ipcMain.handle(IPC.saveFile, async (_, filename, data) => {
+        if (!filename || typeof filename !== 'string') {
+            return false;
+        }
+        const filePath = resolveDataPath(filename);
+        if (!filePath) {
+            return false;
+        }
         try {
             // Create the directory if it doesn't exist
             await fsp.mkdir(dirname(filePath), { recursive: true });
@@ -121,7 +142,7 @@ app.whenReady().then(() => {
         }
     });
 
-    ipcMain.handle('list-files', async () => {
+    ipcMain.handle(IPC.listFiles, async () => {
         try {
             // Return files and directories
             return await fsp.readdir(getDirectoryPath());
@@ -130,34 +151,48 @@ app.whenReady().then(() => {
         }
     });
 
-    ipcMain.handle('get-file', async (_, filename) => {
-        if (!filename || typeof filename !== 'string') return null;
+    ipcMain.handle(IPC.getFile, async (_, filename) => {
+        if (!filename || typeof filename !== 'string') {
+            return null;
+        }
+        const filePath = resolveDataPath(filename);
+        if (!filePath) {
+            return null;
+        }
         try {
-            return await fsp.readFile(join(getDirectoryPath(), filename), 'utf8');
+            return await fsp.readFile(filePath, 'utf8');
         } catch (e) {
             return null;
         }
     });
 
-    ipcMain.handle('delete-file', async (_, filename) => {
-        if (!filename || typeof filename !== 'string') return false;
+    ipcMain.handle(IPC.deleteFile, async (_, filename) => {
+        if (!filename || typeof filename !== 'string') {
+            return false;
+        }
+        const filePath = resolveDataPath(filename);
+        if (!filePath) {
+            return false;
+        }
         try {
             // we use rmSync instead of unlinkSync so we can delete directories cleanly
-            await fsp.rm(join(getDirectoryPath(), filename), { recursive: true, force: true });
+            await fsp.rm(filePath, { recursive: true, force: true });
             return true;
         } catch (e) {
             return false;
         }
     });
 
-    ipcMain.handle('export-data', async () => {
+    ipcMain.handle(IPC.exportData, async () => {
         const { filePath } = await dialog.showSaveDialog(mainWindow, {
             title: 'Export ScratchBook Data',
             defaultPath: join(app.getPath('downloads'), 'scratchbook-backup.zip'),
             filters: [{ name: 'Zip Files', extensions: ['zip'] }]
         });
 
-        if (!filePath) return false;
+        if (!filePath) {
+            return false;
+        }
 
         try {
             const zip = new AdmZip();
@@ -188,35 +223,58 @@ app.whenReady().then(() => {
         }
     });
 
-    ipcMain.handle('import-data', async () => {
+    ipcMain.handle(IPC.importData, async () => {
         const { filePaths } = await dialog.showOpenDialog(mainWindow, {
             title: 'Import ScratchBook Data',
             properties: ['openFile'],
             filters: [{ name: 'Zip Files', extensions: ['zip'] }]
         });
 
-        if (!filePaths || filePaths.length === 0) return false;
+        if (!filePaths || filePaths.length === 0) {
+            return false;
+        }
 
+        // Extract into a temporary staging folder first. 
+        // The live data folder is only replaced once the whole import has succeeded.
+        const dataDir = resolve(getDirectoryPath());
+        const stagingDir = dataDir + '.import';
         try {
             const zip = new AdmZip(filePaths[0]);
-            // Clear existing data directory
-            await fsp.rm(getDirectoryPath(), { recursive: true, force: true });
-            await fsp.mkdir(getDirectoryPath(), { recursive: true });
-            // Extract
-            zip.extractAllTo(getDirectoryPath(), true);
+
+            // Reject the whole archive if any entry would land outside the data folder.
+            const unsafe = findBadPaths(zip.getEntries().map((entry) => entry.entryName), stagingDir);
+            if (unsafe.length > 0) {
+                console.error('Import rejected: unsafe entries', unsafe);
+                return false;
+            }
+
+            await fsp.rm(stagingDir, { recursive: true, force: true });
+            await fsp.mkdir(stagingDir, { recursive: true });
+            zip.extractAllTo(stagingDir, true);
 
             // Force touch the sync token to trigger renderer reload
-            const syncTokenPath = join(getDirectoryPath(), '_sync_state.json');
-            await fsp.writeFile(syncTokenPath, JSON.stringify({ lastSyncTimestamp: new Date().toISOString(), import: true }, null, 2));
+            const syncTokenPath = join(stagingDir, FILES.syncToken);
+            await fsp.writeFile(syncTokenPath, syncTokenPayload({ timestamp: new Date().toISOString(), import: true }));
+
+            // Keep this device's settings. Otherwise the backup's settings.json would replace them.
+            const localSettingsPath = join(dataDir, FILES.settings);
+            if (fs.existsSync(localSettingsPath)) {
+                await fsp.copyFile(localSettingsPath, join(stagingDir, FILES.settings));
+            }
+
+            // Swap the staged import into place.
+            await fsp.rm(dataDir, { recursive: true, force: true });
+            await fsp.rename(stagingDir, dataDir);
 
             return true;
         } catch (e) {
             console.error('Import failed', e);
+            await fsp.rm(stagingDir, { recursive: true, force: true }).catch(() => {});
             return false;
         }
     });
 
-    ipcMain.handle('open-external', async (_, url) => {
+    ipcMain.handle(IPC.openExternal, async (_, url) => {
         let parsed;
         try {
             parsed = new URL(url);
@@ -230,7 +288,7 @@ app.whenReady().then(() => {
         return true;
     });
 
-    ipcMain.on('set-watcher-enabled', (_, enabled) => {
+    ipcMain.on(IPC.setWatcherEnabled, (_, enabled) => {
         if (enabled) {
             startWatcher();
         } else {
@@ -249,8 +307,10 @@ app.whenReady().then(() => {
     let syncTimeout;
 
     function startWatcher() {
-        if (watcher) return;
-        const syncTokenPath = join(getDirectoryPath(), '_sync_state.json');
+        if (watcher) {
+            return;
+        }
+        const syncTokenPath = join(getDirectoryPath(), FILES.syncToken);
         console.log('Main: Starting file watcher on', syncTokenPath);
         watcher = chokidar.watch(syncTokenPath, {
             persistent: true,
@@ -262,11 +322,13 @@ app.whenReady().then(() => {
         });
 
         watcher.on('change', () => {
-            if (syncTimeout) clearTimeout(syncTimeout);
+            if (syncTimeout) {
+                clearTimeout(syncTimeout);
+            }
             syncTimeout = setTimeout(() => {
                 console.log('Sync token changed on disk, notifying renderer');
                 if (mainWindow && !mainWindow.isDestroyed()) {
-                    mainWindow.webContents.send('sync-state-changed');
+                    mainWindow.webContents.send(IPC.syncStateChanged);
                 }
             }, 300);
         });
@@ -280,20 +342,11 @@ app.whenReady().then(() => {
         }
     }
 
-    // Initial watcher state from settings.json
+    // Initial watcher state from settings.json. A missing file or key means the shared default.
     try {
-        const settingsPath = join(getDirectoryPath(), 'settings.json');
-        if (fs.existsSync(settingsPath)) {
-            const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-            const watcherSetting = settings.find(s => s.key === 'enableWatcher');
-            if (watcherSetting && watcherSetting.value === true) {
-                startWatcher();
-            } else if (!watcherSetting) {
-                // Default to ON if setting not present yet
-                startWatcher();
-            }
-        } else {
-            // Default to ON for first run
+        const settingsPath = join(getDirectoryPath(), FILES.settings);
+        const text = fs.existsSync(settingsPath) ? fs.readFileSync(settingsPath, 'utf8') : null;
+        if (readSettings(text)[SETTINGS.enableWatcher] === true) {
             startWatcher();
         }
     } catch (e) {

@@ -38,7 +38,9 @@
     defineEmits(['click']);
 
     const iconComponent = computed(() => {
-        if (!props.icon) return null;
+        if (!props.icon) {
+            return null;
+        }
         return LucideIcons[props.icon] || null;
     });
 </script>

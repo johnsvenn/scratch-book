@@ -15,7 +15,9 @@ export function useTagPillStyle(tagColorsRef) {
      */
     function getTagColor(tagName) {
         const colors = tagColorsRef.value;
-        if (colors instanceof Map) return colors.get(tagName) ?? getAutoColor(tagName);
+        if (colors instanceof Map) {
+            return colors.get(tagName) ?? getAutoColor(tagName);
+        }
         return colors[tagName] ?? getAutoColor(tagName);
     }
 
@@ -27,7 +29,9 @@ export function useTagPillStyle(tagColorsRef) {
      */
     function pillStyle(tagName) {
         const hex = getTagColor(tagName);
-        if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return {};
+        if (!/^#[0-9a-fA-F]{6}$/.test(hex)) {
+            return {};
+        }
         const r = parseInt(hex.slice(1, 3), 16);
         const g = parseInt(hex.slice(3, 5), 16);
         const b = parseInt(hex.slice(5, 7), 16);
@@ -49,7 +53,9 @@ export function useTagPillStyle(tagColorsRef) {
  * @returns {string[]}
  */
 export function filterUserTags(tags) {
-    if (!tags) return [];
+    if (!tags) {
+        return [];
+    }
     const arr = Array.isArray(tags) ? tags : String(tags).split(',');
     return arr.map(t => t.trim()).filter(t => t && !RESERVED_TAGS.has(t));
 }

@@ -26,22 +26,32 @@
     import { ref, onMounted } from 'vue';
     import BaseModal from '../BaseModal/BaseModal.vue';
     import BaseButton from '../BaseButton/BaseButton.vue';
+    import { SETTINGS, SETTING_DEFAULTS } from '../../../shared/protocol.js';
 
     const emit = defineEmits(['close-settings']);
 
     const settings = ref({
-        enableWatcher: true // default
+        enableWatcher: SETTING_DEFAULTS[SETTINGS.enableWatcher]
     });
 
     onMounted(async () => {
-        const stored = await db.getSetting('enableWatcher');
+        const stored = await db.getSetting(SETTINGS.enableWatcher);
         if (stored !== null) {
             settings.value.enableWatcher = stored;
         }
     });
 
     async function onWatcherToggle() {
-        await db.putSetting('enableWatcher', settings.value.enableWatcher);
+        const enabled = settings.value.enableWatcher;
+        try {
+            await db.putSetting(SETTINGS.enableWatcher, enabled);
+        } catch (e) {
+            // Nothing was saved, so the watcher keeps its previous state. Put the checkbox back.
+            console.error('Could not save the watcher setting', e);
+            settings.value.enableWatcher = !enabled;
+            alert('Could not save the setting. The watcher is unchanged.');
+            return;
+        }
         if (window.electronAPI && window.electronAPI.setWatcherEnabled) {
             window.electronAPI.setWatcherEnabled(settings.value.enableWatcher);
         }
@@ -62,7 +72,9 @@
     }
 
     async function rebuildDatabase() {
-        if (!confirm('This will wipe your local database and rebuild it entirely from the filesystem. Proceed?')) return;
+        if (!confirm('This will wipe your local database and rebuild it entirely from the filesystem. Proceed?')) {
+            return;
+        }
         try {
             await SyncService.performSync(true);
             alert('Database rebuild complete! The application will now reload.');
@@ -83,7 +95,9 @@
     }
 
     async function importData() {
-        if (!confirm('This will OVERWRITE all current data. Are you sure?')) return;
+        if (!confirm('This will OVERWRITE all current data. Are you sure?')) {
+            return;
+        }
         const success = await window.electronAPI.importData();
         if (success) {
             alert('Data imported successfully! The application will now reload.');

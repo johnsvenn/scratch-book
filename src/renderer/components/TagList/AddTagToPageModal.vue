@@ -38,6 +38,7 @@
 <script setup>
     import { ref, computed, onMounted, nextTick } from 'vue';
     import { Tag } from 'lucide-vue-next';
+    import { getAutoColor } from '../../lib/TagMeta';
     import BaseModal from '../BaseModal/BaseModal.vue';
 
     const props = defineProps({
@@ -63,15 +64,17 @@
     // Focus input on open for quick typing
     onMounted(() => {
         nextTick(() => {
-            if (inputRef.value) inputRef.value.focus();
+            if (inputRef.value) {
+                inputRef.value.focus();
+            }
         });
     });
 
     function getTagColor(tagName) {
         if (props.tagColors instanceof Map) {
-            return props.tagColors.get(tagName) ?? '#aaa';
+            return props.tagColors.get(tagName) ?? getAutoColor(tagName);
         }
-        return props.tagColors[tagName] ?? '#aaa';
+        return props.tagColors[tagName] ?? getAutoColor(tagName);
     }
 
     function isSet(tagName) {
@@ -88,7 +91,9 @@
     });
 
     function submitNewTag() {
-        if (!isValidNewTag.value) return;
+        if (!isValidNewTag.value) {
+            return;
+        }
         const t = newTagName.value.trim().toLowerCase();
         emit('add-new-tag', t);
         newTagName.value = '';

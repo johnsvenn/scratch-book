@@ -1,7 +1,6 @@
 const Constants = Object.freeze({
     FILESTORE: {
         FILE_SYSTEM: Symbol('FILE_SYSTEM'),
-        INDEXDB: Symbol('INDEXDB'),
     },
     DATA_DIRECTORY: {
         DEFAULT: '.scratchbook/',

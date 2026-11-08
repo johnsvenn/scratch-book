@@ -95,7 +95,9 @@
             return;
         }
 
-        if (!val) return;
+        if (!val) {
+            return;
+        }
 
         // Debounced uniqueness check
         isValidating.value = true;
@@ -113,7 +115,9 @@
 
     async function onSave() {
         const val = slugValue.value.trim();
-        if (!val || errorMessage.value) return;
+        if (!val || errorMessage.value) {
+            return;
+        }
 
         // Final uniqueness check before saving
         const taken = await db.isSlugTaken(val, props.page?.filename);
@@ -127,11 +131,15 @@
 
     async function onCopy() {
         const val = slugValue.value.trim();
-        if (!val) return;
+        if (!val) {
+            return;
+        }
         try {
             await navigator.clipboard.writeText(`page://${val}`);
             copied.value = true;
-            setTimeout(() => { copied.value = false; }, 2000);
+            setTimeout(() => {
+                copied.value = false;
+            }, 2000);
         } catch {
             // clipboard unavailable
         }

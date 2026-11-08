@@ -1,5 +1,5 @@
 import { UnifiedIndex } from '../../../src/renderer/lib/PageIndex';
-import PageService from '../../../src/renderer/lib/Pages/PageService';
+import Page from '../../../src/renderer/lib/Pages/Page';
 
 // Mock dependencies
 vi.mock('../../../src/renderer/lib/filestore', () => ({
@@ -49,10 +49,10 @@ describe('New Page Creation Logic', () => {
 
     it('canCreateNewPage should be true if not on the last page', async () => {
         // Add two mocked items
-        const item1 = await PageService.createItem();
+        const item1 = new Page();
         item1.title = "Page 1";
 
-        const item2 = await PageService.createItem();
+        const item2 = new Page();
         item2.title = "Page 2";
 
         await UnifiedIndex.append(item1);
@@ -70,7 +70,7 @@ describe('New Page Creation Logic', () => {
 
     it('canCreateNewPage should restrict advancing past an empty final page', async () => {
         // The last page is completely blank
-        const emptyPage = await PageService.createItem();
+        const emptyPage = new Page();
 
         await UnifiedIndex.append(emptyPage);
 
@@ -93,7 +93,7 @@ describe('New Page Creation Logic', () => {
     });
 
     it('canCreateNewPage should allow advancing past a filled final page', async () => {
-        const filledPage = await PageService.createItem();
+        const filledPage = new Page();
         filledPage.title = 'Hello World';
 
         await UnifiedIndex.append(filledPage);
@@ -119,7 +119,7 @@ describe('New Page Creation Logic', () => {
         expect(listData.length).toBe(0);
 
         // Simulation of createNewPageFile
-        let newItem = await PageService.createItem();
+        let newItem = new Page();
         await UnifiedIndex.append(newItem);
         listData = UnifiedIndex.list(); // Reactivity refresh mapping
 

@@ -100,23 +100,31 @@
     }, { immediate: true });
 
     function toPreviousPage() {
-        if (isFirstPage.value) return;
+        if (isFirstPage.value) {
+            return;
+        }
         const next = navCurrentPageNumber.value > 1 ? navCurrentPageNumber.value - 1 : 1;
         updatePage(next);
     }
 
     function toNextPage() {
-        if (!props.canGoNext) return;
+        if (!props.canGoNext) {
+            return;
+        }
         updatePage(navCurrentPageNumber.value + 1);
     }
 
     function toFirstPage() {
-        if (isFirstPage.value) return;
+        if (isFirstPage.value) {
+            return;
+        }
         updatePage(1);
     }
 
     function toLastPage() {
-        if (isLastPage.value) return;
+        if (isLastPage.value) {
+            return;
+        }
         updatePage(numberOfPages.value);
     }
 
@@ -126,14 +134,20 @@
             navCurrentPageNumber.value = navLastPageNumber.value;
             return;
         }
-        if (num > numberOfPages.value) num = numberOfPages.value;
-        if (num < 1) num = 1;
+        if (num > numberOfPages.value) {
+            num = numberOfPages.value;
+        }
+        if (num < 1) {
+            num = 1;
+        }
 
         updatePage(num);
     }
 
     function updatePage(next) {
-        if (next === navLastPageNumber.value) return;
+        if (next === navLastPageNumber.value) {
+            return;
+        }
         
         emit('currentPageChange', navLastPageNumber.value, next);
         emit('update:currentPageNumber', next);

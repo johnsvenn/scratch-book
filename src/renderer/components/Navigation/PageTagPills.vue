@@ -23,13 +23,13 @@
                 + tag
             </button>
             <AddTagToPageModal v-if="popoverOpen"
-                          :page-tags="userTags"
-                          :all-tags="allTags"
-                          :tag-colors="tagColors"
-                          @close="popoverOpen = false"
-                          @add-new-tag="onAddNewTag"
-                          @toggle-tag="onToggleTag"
-                          @open-manage-tags="onOpenManageTags" />
+                               :page-tags="userTags"
+                               :all-tags="allTags"
+                               :tag-colors="tagColors"
+                               @close="popoverOpen = false"
+                               @add-new-tag="onAddNewTag"
+                               @toggle-tag="onToggleTag"
+                               @open-manage-tags="onOpenManageTags" />
         </div>
     </div>
 </template>

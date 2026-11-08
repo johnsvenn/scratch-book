@@ -1,6 +1,6 @@
 {
     "name": "scratchbook",
-    "version": "0.1.9",
+    "version": "0.2.1",
     "author": "John Elliott <johnsvenn@gmail.com>",
     "description": "An opinionated page based note taking application",
     "license": "MIT",
@@ -44,6 +44,7 @@
         "eslint": "^9.39.3",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-vue": "^10.8.0",
+        "fake-indexeddb": "^6.2.7",
         "jsdom": "^28.1.0",
         "prettier": "^3.8.1",
         "sass": "^1.69.5",

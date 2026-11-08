@@ -36,6 +36,16 @@ export default [
     // Prettier compatibility
     prettierConfig,
 
+    // Brace every if/else/loop body, and put block contents on their own lines.
+    // Placed after prettierConfig, which turns both `curly` and `brace-style` off.
+    {
+        files: ['src/**/*.{js,vue}'],
+        rules: {
+            curly: 'error',
+            'brace-style': ['error', '1tbs', { allowSingleLine: false }],
+        },
+    },
+
     // Vue template formatting rules (after prettierConfig to avoid being disabled)
     {
         files: ['src/**/*.vue'],

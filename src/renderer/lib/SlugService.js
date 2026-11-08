@@ -11,7 +11,9 @@ import db from './db.js';
  * @returns {string}
  */
 export function toBaseSlug(title) {
-    if (!title || !title.trim()) return 'page';
+    if (!title || !title.trim()) {
+        return 'page';
+    }
     return title
         .trim()
         .toLowerCase()

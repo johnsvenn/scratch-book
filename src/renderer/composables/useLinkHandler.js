@@ -43,7 +43,9 @@ export function useLinkHandler({ openExternal, onPageLink, showToast } = {}) {
      */
     async function handleLinkClick(event) {
         const anchor = event.target.closest('a');
-        if (!anchor) return;
+        if (!anchor) {
+            return;
+        }
 
         const href = anchor.getAttribute('href') ?? '';
 

@@ -29,7 +29,9 @@ function showToast(message) {
 
 async function openExternal(url) {
     const ok = await window.electronAPI.openExternal(url);
-    if (!ok) showToast('Could not open link — only http/https URLs are supported.');
+    if (!ok) {
+        showToast('Could not open link — only http/https URLs are supported.');
+    }
 }
 
 const { handleLinkClick } = useLinkHandler({

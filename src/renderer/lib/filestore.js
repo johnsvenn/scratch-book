@@ -1,8 +1,12 @@
 const filestore = {
     saveFile: async (filename, data) => {
         try {
-            await window.electronAPI.saveFile(filename, data);
-            console.log('File saved to disc', filename);
+            // false means the main process could not write the file. Callers that need to know check it.
+            const saved = await window.electronAPI.saveFile(filename, data);
+            if (saved) {
+                console.log('File saved to disc', filename);
+            }
+            return saved;
         } catch (e) {
             console.error('Save failed', e);
             throw e;

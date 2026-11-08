@@ -18,10 +18,6 @@ vi.mock('../../../../src/renderer/lib/SyncService', () => ({
     }
 }));
 
-vi.mock('../../../../src/renderer/lib/migrateToPageBundles', () => ({
-    default: vi.fn(),
-}));
-
 // Mock window.electronAPI and confirm/alert
 global.window.electronAPI = {
     setWatcherEnabled: vi.fn(),
@@ -71,6 +67,20 @@ describe('SettingsModal.vue', () => {
 
         expect(db.putSetting).toHaveBeenCalledWith('enableWatcher', false);
         expect(window.electronAPI.setWatcherEnabled).toHaveBeenCalledWith(false);
+    });
+
+    it('reverts the toggle and leaves the watcher alone when the setting cannot be saved', async () => {
+        db.putSetting.mockRejectedValue(new Error('disk full'));
+        const wrapper = mount(SettingsModal);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        const checkbox = wrapper.find('#watcher-toggle');
+        await checkbox.setValue(false);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(window.electronAPI.setWatcherEnabled).not.toHaveBeenCalled();
+        expect(checkbox.element.checked).toBe(true);
+        expect(global.alert).toHaveBeenCalledWith('Could not save the setting. The watcher is unchanged.');
     });
 
     it('calls SyncService.performSync when Sync Now is clicked', async () => {

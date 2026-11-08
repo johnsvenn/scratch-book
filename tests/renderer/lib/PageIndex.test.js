@@ -83,73 +83,67 @@ describe('PageIndex Ordering', () => {
     });
 
     describe('Core Methods (append, prepend, delete, update, setItems, search)', () => {
-        const searchInit = search.init;
         const searchAdd = search.add;
         const searchRemove = search.remove;
         const doSearch = search.search;
 
-        it('append should add a non-empty item to the end, update DB and search', async () => {
+        // Page rows are written by PageWriter. The index only changes memory and tag order.
+
+        it('append should add a non-empty item to memory and the current tag order, without writing the page', async () => {
             const item = { filename: 'test', title: 'A', content: 'B', tags: [] };
             db.getOrder.mockResolvedValue(['existing']);
             await UnifiedIndex.append(item);
-            
+
             expect(UnifiedIndex.items[UnifiedIndex.items.length - 1].filename).toBe('test');
-            expect(db.put).toHaveBeenCalledWith(expect.objectContaining({ filename: 'test' }), false);
-            expect(searchAdd).toHaveBeenCalled();
+            expect(db.put).not.toHaveBeenCalled();
+            expect(searchAdd).not.toHaveBeenCalled();
             expect(db.putOrder).toHaveBeenCalledWith(Constants.CURRENT_TAG, ['existing', 'test']);
         });
 
-        it('prepend should add a non-empty item to the beginning, update DB and search', async () => {
+        it('prepend should add a non-empty item to memory and the current tag order, without writing the page', async () => {
             const item = { filename: 'test-prep', title: 'A', content: 'B', tags: [] };
             db.getOrder.mockResolvedValue(['existing']);
             await UnifiedIndex.prepend(item);
-            
+
             expect(UnifiedIndex.items[0].filename).toBe('test-prep');
-            expect(db.put).toHaveBeenCalledWith(expect.objectContaining({ filename: 'test-prep' }), false);
-            expect(searchAdd).toHaveBeenCalled();
+            expect(db.put).not.toHaveBeenCalled();
+            expect(searchAdd).not.toHaveBeenCalled();
             expect(db.putOrder).toHaveBeenCalledWith(Constants.CURRENT_TAG, ['test-prep', 'existing']);
         });
 
-        it('delete should remove item from items list, DB, search, and tag orders', async () => {
+        it('delete should remove item from memory and tag orders, without deleting the page row', async () => {
             UnifiedIndex.items = [new Page({ filename: 'test-del', title: 'A' })];
             db.getOrder.mockResolvedValue(['test-del', 'other']);
-            
+
             await UnifiedIndex.delete(UnifiedIndex.items[0]);
-            
+
             expect(UnifiedIndex.items.length).toBe(0);
-            expect(db.delete).toHaveBeenCalledWith('test-del', false);
-            expect(searchRemove).toHaveBeenCalledWith('test-del');
+            expect(db.delete).not.toHaveBeenCalled();
+            expect(searchRemove).not.toHaveBeenCalled();
             expect(db.putOrder).toHaveBeenCalledWith(Constants.CURRENT_TAG, ['other']);
             expect(db.putOrder).toHaveBeenCalledWith(Constants.ARCHIVE_TAG, ['other']);
             expect(db.putOrder).toHaveBeenCalledWith(Constants.FAVOURITE_TAG, ['other']);
         });
 
-        it('update should replace existing item or push if not found', async () => {
+        it('update should replace existing item or push if not found, in memory only', async () => {
             UnifiedIndex.items = [new Page({ filename: 'test-update', title: 'Old' })];
             await UnifiedIndex.update({ filename: 'test-update', title: 'New', content: 'Not empty' });
-            
+
             expect(UnifiedIndex.items[0].title).toBe('New');
-            expect(db.put).toHaveBeenCalled();
-            expect(searchAdd).toHaveBeenCalled();
+            expect(db.put).not.toHaveBeenCalled();
+            expect(searchAdd).not.toHaveBeenCalled();
 
             await UnifiedIndex.update({ filename: 'new-item', title: 'Brand new', content: 'C' });
             expect(UnifiedIndex.items[1].filename).toBe('new-item');
         });
 
-        it('update should DELETE from DB if updated with an empty item', async () => {
+        it('update keeps an emptied item in memory, so the list does not shift while the user is on it', async () => {
             UnifiedIndex.items = [new Page({ filename: 'test', title: 'A' })];
             const item = new Page({ filename: 'test', title: '', content: '' });
             await UnifiedIndex.update(item);
-            expect(db.delete).toHaveBeenCalledWith('test', false);
-            expect(searchRemove).toHaveBeenCalledWith('test');
-        });
-
-        it('setItems should clear db and replace items', async () => {
-            await UnifiedIndex.setItems([{ filename: '1', title: 'A', content: 'C' }]);
-            expect(UnifiedIndex.items.length).toBe(1);
-            expect(db.clear).toHaveBeenCalled();
-            expect(db.put).toHaveBeenCalled();
-            expect(searchInit).toHaveBeenCalled();
+            expect(UnifiedIndex.items.map((p) => p.filename)).toEqual(['test']);
+            expect(db.delete).not.toHaveBeenCalled();
+            expect(searchRemove).not.toHaveBeenCalled();
         });
 
         it('search should map search wrapper results to items', () => {
@@ -357,7 +351,6 @@ describe('PageIndex Ordering', () => {
             const spyUpdate = vi.spyOn(UnifiedIndex, 'update').mockResolvedValue();
             const spyMove = vi.spyOn(UnifiedIndex, 'move').mockReturnValue();
             const spySave = vi.spyOn(UnifiedIndex, 'save').mockResolvedValue();
-            const spySetItems = vi.spyOn(UnifiedIndex, 'setItems').mockResolvedValue();
             const spyFilter = vi.spyOn(UnifiedIndex, 'filterByTag').mockResolvedValue();
             const spyTagOrder = vi.spyOn(UnifiedIndex, 'saveTagOrder').mockResolvedValue();
             const spySearch = vi.spyOn(UnifiedIndex, 'search').mockReturnValue([]);
@@ -373,7 +366,6 @@ describe('PageIndex Ordering', () => {
             
             defaultIndex.move(mockItem, 1); expect(spyMove).toHaveBeenCalledWith(mockItem, 1);
             await defaultIndex.save(); expect(spySave).toHaveBeenCalled();
-            await defaultIndex.setItems([]); expect(spySetItems).toHaveBeenCalledWith([]);
             
             await defaultIndex.filter('tag'); expect(spyFilter).toHaveBeenCalledWith('tag');
             await defaultIndex.saveTagOrder('tag', []); expect(spyTagOrder).toHaveBeenCalledWith('tag', []);
@@ -407,7 +399,6 @@ describe('PageIndex Ordering', () => {
             const spyUpdate = vi.spyOn(UnifiedIndex, 'update').mockResolvedValue();
             const spyMove = vi.spyOn(UnifiedIndex, 'move').mockReturnValue();
             const spySave = vi.spyOn(UnifiedIndex, 'save').mockResolvedValue();
-            const spySetItems = vi.spyOn(UnifiedIndex, 'setItems').mockResolvedValue();
             const spyFilter = vi.spyOn(UnifiedIndex, 'filterByTag').mockResolvedValue();
             const spyTagOrder = vi.spyOn(UnifiedIndex, 'saveTagOrder').mockResolvedValue();
             const spySearch = vi.spyOn(UnifiedIndex, 'search').mockReturnValue([]);
@@ -442,7 +433,6 @@ describe('PageIndex Ordering', () => {
             await archiveIndex.update(mockItem1); expect(spyUpdate).toHaveBeenCalled();
             archiveIndex.move(mockItem1, 1); expect(spyMove).toHaveBeenCalled();
             await archiveIndex.save(); expect(spySave).toHaveBeenCalled();
-            await archiveIndex.setItems([]); expect(spySetItems).toHaveBeenCalled();
             await archiveIndex.filter('tag'); expect(spyFilter).toHaveBeenCalled();
             await archiveIndex.saveTagOrder('tag', []); expect(spyTagOrder).toHaveBeenCalled();
             archiveIndex.search('q'); expect(spySearch).toHaveBeenCalled();
@@ -460,6 +450,75 @@ describe('PageIndex Ordering', () => {
             expect(archiveIndex.indexFileName).toBe('archive.json');
 
             vi.restoreAllMocks();
+        });
+    });
+
+    // Characterises which pages each index shows today. One shared set of pages is used
+    // so the rules can be compared side by side. These pin current behaviour before the
+    // predicates are refactored.
+    describe('Index membership rules', () => {
+        const pages = () => [
+            { filename: 'cur', tags: [Constants.CURRENT_TAG] },
+            { filename: 'arch', tags: [Constants.ARCHIVE_TAG] },
+            { filename: 'arch-cur', tags: [Constants.ARCHIVE_TAG, Constants.CURRENT_TAG] },
+            { filename: 'ideas', tags: ['ideas'] },
+            { filename: 'ideas-arch', tags: ['ideas', Constants.ARCHIVE_TAG] },
+            { filename: 'bare' },
+        ];
+        const names = (list) => list.map((p) => p.filename);
+
+        beforeEach(() => {
+            UnifiedIndex.items = pages();
+            db.getOrder.mockResolvedValue(null);
+            search.search.mockReset();
+        });
+
+        it('default index shows only current, non-archived pages', () => {
+            expect(names(defaultIndex.list())).toEqual(['cur']);
+        });
+
+        it('archive index shows only archived pages, whether or not they are current', () => {
+            expect(names(archiveIndex.list())).toEqual(['arch', 'arch-cur', 'ideas-arch']);
+        });
+
+        it('filterByTag(null) shows non-archived pages, including ones with no reserved tag', async () => {
+            // Differs from defaultIndex.list: 'ideas' and 'bare' are not current but still appear.
+            expect(names(await UnifiedIndex.filterByTag(null))).toEqual(['cur', 'ideas', 'bare']);
+        });
+
+        it('filterByTag(CURRENT_TAG) matches the default index', async () => {
+            expect(names(await UnifiedIndex.filterByTag(Constants.CURRENT_TAG))).toEqual(
+                names(defaultIndex.list())
+            );
+        });
+
+        it('filterByTag(ARCHIVE_TAG) matches the archive index', async () => {
+            expect(names(await UnifiedIndex.filterByTag(Constants.ARCHIVE_TAG))).toEqual(
+                names(archiveIndex.list())
+            );
+        });
+
+        it('filterByTag(custom) excludes archived pages that carry the tag', async () => {
+            expect(names(await UnifiedIndex.filterByTag('ideas'))).toEqual(['ideas']);
+        });
+
+        it('tag index list excludes archived pages that carry the tag', () => {
+            expect(names(UnifiedIndex.getTagIndex('ideas').list())).toEqual(['ideas']);
+        });
+
+        it('default index search returns only current, non-archived matches', () => {
+            search.search.mockReturnValue(pages().map((p) => ({ id: p.filename, score: 1 })));
+            expect(names(defaultIndex.search('q'))).toEqual(['cur']);
+        });
+
+        it('archive index search returns only archived matches', () => {
+            search.search.mockReturnValue(pages().map((p) => ({ id: p.filename, score: 1 })));
+            expect(names(archiveIndex.search('q'))).toEqual(['arch', 'arch-cur', 'ideas-arch']);
+        });
+
+        it('empty query returns the same membership as the list', () => {
+            expect(names(defaultIndex.search(''))).toEqual(names(defaultIndex.list()));
+            expect(names(archiveIndex.search(''))).toEqual(names(archiveIndex.list()));
         });
     });
 });
