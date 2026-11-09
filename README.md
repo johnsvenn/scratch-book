@@ -1,8 +1,50 @@
 # ScratchBook
 
-ScratchBook is an opinionated page based scratch-pad and notes app with filesystem based storage.
+## Overview
 
-Multi device usage and sync can be implemented by use of third-party apps like Dropbox to watch and update the storage directory.
+ScratchBook is an opinionated page based scratch-pad and notes app with local storage.
+
+ScratchBook is privacy first - your data never leaves your device unless you explicitly setup sync using third-party apps like Dropbox to watch and update the storage directory.
+
+## Features
+
+### Preview view
+
+![Page preview](./screenshots/preview.png)
+
+### Markdown view
+
+![Page text / markdown view](./screenshots/text-markdown.png)
+
+### Page slug
+
+Add slugs to pages for internal links.
+
+![Add slug](./screenshots/slug.png)
+
+### Page tags
+
+Add tags to organise pages.
+
+![Add tags](./screenshots/tags.png)
+
+### Search
+
+Full text search using MiniSearch.
+
+![Search](./screenshots/search.png)
+
+### Favourites
+
+Quick access to favourites 
+
+![Favourites](./screenshots/favourites.png)
+
+### Manage tags
+
+![Manage tags](./screenshots/manage-tags.png)
+
+
 
 ## Tech stack
 
@@ -11,6 +53,7 @@ Multi device usage and sync can be implemented by use of third-party apps like D
 - IndexedDB (`idb`) for fast local cache
 - Filesystem page bundles for canonical persisted data
 - Vitest + Vue Test Utils for tests
+- MiniSearch (full text search) 
 
 ## Storage model
 
@@ -73,11 +116,12 @@ Each script runs `npm run build` first, then `electron-builder` for the chosen p
 ### Versioning
 
 The version comes from the `version` field in `package.json`, and it is written into the artifact file names.
+
 Bump it before building a new release.
 
-## Sync behavior
+## Sync behaviour
 
-- The main process can watch `_sync_state.json` and notify the renderer.
+- The main process can watch `_sync_state.json` and notify the renderer. This can be enabled in settings.
 - The renderer `SyncService` reconciles filesystem changes back into IndexedDB and in-memory indexes.
 - Import/export is handled via main-process IPC handlers.
 
